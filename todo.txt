@@ -7,6 +7,11 @@ Optimize database queries.
 Implement caching where necessary (
 
 
+To use HTTPS in your development environment, 
+you'll need a self-signed certificate. 
+In production, you should use a certificate from a trusted Certificate Authority (CA).
+
+
 
 
 

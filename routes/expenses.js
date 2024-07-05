@@ -1,4 +1,3 @@
-// routes/expenses.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Expense = require('../models/expense');
@@ -7,31 +6,6 @@ const authMiddleware = require('../middleware/auth');
 
 router.use(authMiddleware);
 
-/**
- * @swagger
- * tags:
- *   name: Expenses
- *   description: Expense management
- */
-
-/**
- * @swagger
- * /expenses:
- *   get:
- *     summary: Get all expenses
- *     tags: [Expenses]
- *     responses:
- *       200:
- *         description: List of all expenses
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Expense'
- *       500:
- *         description: Internal server error
- */
 router.get('/', async (req, res) => {
   try {
     const expenses = await Expense.find({ userId: req.userId });
@@ -41,29 +15,9 @@ router.get('/', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /expenses:
- *   post:
- *     summary: Add a new expense
- *     tags: [Expenses]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Expense'
- *     responses:
- *       201:
- *         description: Expense created successfully
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Internal server error
- */
 router.post('/', [
-  body('description').notEmpty().withMessage('Description is required'),
-  body('amount').isNumeric().withMessage('Amount must be a number'),
+  body('description').trim().escape().notEmpty().withMessage('Description is required'),
+  body('amount').isNumeric().withMessage('Amount must be a number').trim().escape(),
   body('date').optional().isISO8601().toDate().withMessage('Date must be a valid date')
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -81,38 +35,9 @@ router.post('/', [
   }
 });
 
-/**
- * @swagger
- * /expenses/{id}:
- *   put:
- *     summary: Update an expense
- *     tags: [Expenses]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: Expense ID
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Expense'
- *     responses:
- *       200:
- *         description: Expense updated successfully
- *       400:
- *         description: Invalid input
- *       404:
- *         description: Expense not found
- *       500:
- *         description: Internal server error
- */
 router.put('/:id', [
-  body('description').optional().notEmpty().withMessage('Description is required'),
-  body('amount').optional().isNumeric().withMessage('Amount must be a number'),
+  body('description').optional().notEmpty().trim().escape().withMessage('Description is required'),
+  body('amount').optional().isNumeric().trim().escape().withMessage('Amount must be a number'),
   body('date').optional().isISO8601().toDate().withMessage('Date must be a valid date')
 ], async (req, res) => {
   const { id } = req.params;
@@ -137,27 +62,6 @@ router.put('/:id', [
   }
 });
 
-/**
- * @swagger
- * /expenses/{id}:
- *   delete:
- *     summary: Delete an expense
- *     tags: [Expenses]
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: Expense ID
- *     responses:
- *       200:
- *         description: Expense deleted successfully
- *       404:
- *         description: Expense not found
- *       500:
- *         description: Internal server error
- */
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {

@@ -126,3 +126,6 @@ Dockerfile
 
 # SvelteKit v1 build / generate output
 output
+
+# SSL certificates and keys
+*.pem
