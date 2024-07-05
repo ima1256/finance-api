@@ -129,3 +129,4 @@ output
 
 # SSL certificates and keys
 *.pem
+newrelic.js
