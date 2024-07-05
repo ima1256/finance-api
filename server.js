@@ -1,12 +1,13 @@
+require('dotenv').config();
 require('newrelic'); // This must be the first line
 
 const express = require('express');
-const https = require('https');
-const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const redis = require('redis');
 const setupSwagger = require('./swagger');
+const fs = require('fs');
+const https = require('https');
 
 const app = express();
 const redisClient = redis.createClient();
@@ -20,8 +21,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
@@ -37,12 +38,23 @@ app.use('/expenses', expenseRoutes);
 app.use('/budgets', budgetRoutes);
 app.use('/reports', reportRoutes);
 
-const sslOptions = {
-  key: fs.readFileSync('key.pem'),
-  cert: fs.readFileSync('cert.pem')
-};
-
 const PORT = process.env.PORT || 5000;
-https.createServer(sslOptions, app).listen(PORT, () => {
-  console.log(`Server running on https://localhost:${PORT}`);
+
+// HTTPS options
+let server;
+if (fs.existsSync('key.pem') && fs.existsSync('cert.pem')) {
+  const sslOptions = {
+    key: fs.readFileSync('key.pem'),
+    cert: fs.readFileSync('cert.pem')
+  };
+  server = https.createServer(sslOptions, app);
+  console.log(`HTTPS server running on https://0.0.0.0:${PORT}`);
+} else {
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`HTTP server running on http://0.0.0.0:${PORT}`);
+  });
+}
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });
