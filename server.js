@@ -1,16 +1,20 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const authRoutes = require('./routes/auth');
+const expenseRoutes = require('./routes/expenses');
+const budgetRoutes = require('./routes/budgets');
+const reportRoutes = require('./routes/reports');
 const swagger = require('./swagger');
-// other imports
 
 const app = express();
 app.use(express.json());
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/finance', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+mongoose.connect('mongodb://localhost:27017/finance').then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('Error connecting to MongoDB:', error.message);
 });
 
-// Routes
 app.use('/auth', authRoutes);
 app.use('/expenses', expenseRoutes);
 app.use('/budgets', budgetRoutes);
