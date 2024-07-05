@@ -1,36 +1,42 @@
+require('newrelic'); // This must be the first line
+
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const redis = require('redis');
 const setupSwagger = require('./swagger');
 
 const app = express();
+const redisClient = redis.createClient();
 
-app.use(helmet()); // Use helmet for security headers
+redisClient.on('error', (err) => {
+  console.error('Redis error:', err);
+});
+
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rate Limiting Middleware
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
-// Setup Swagger documentation
 setupSwagger(app);
 
-// Your route files
 const authRoutes = require('./routes/auth');
 const expenseRoutes = require('./routes/expenses');
-const budgetRoutes = require('./routes/budgets'); // Add budget routes if you have them
+const budgetRoutes = require('./routes/budgets');
+const reportRoutes = require('./routes/reports');
 
 app.use('/auth', authRoutes);
 app.use('/expenses', expenseRoutes);
-app.use('/budgets', budgetRoutes); // Add this line
+app.use('/budgets', budgetRoutes);
+app.use('/reports', reportRoutes);
 
-// SSL configuration for HTTPS
 const sslOptions = {
   key: fs.readFileSync('key.pem'),
   cert: fs.readFileSync('cert.pem')

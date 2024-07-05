@@ -3,10 +3,23 @@ const { body, validationResult } = require('express-validator');
 const Budget = require('../models/budget');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const redisClient = require('../redisClient');
 
 router.use(authMiddleware);
 
-router.get('/', async (req, res) => {
+const cacheMiddleware = (req, res, next) => {
+  const key = `expenses:${req.userId}`;
+  redisClient.get(key, (err, data) => {
+    if (err) throw err;
+    if (data) {
+      res.json(JSON.parse(data));
+    } else {
+      next();
+    }
+  });
+};
+
+router.get('/', cacheMiddleware, async (req, res) => {
   try {
     const budgets = await Budget.find({ userId: req.userId });
     res.json(budgets);

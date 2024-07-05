@@ -3,10 +3,23 @@ const Expense = require('../models/expense');
 const Budget = require('../models/budget');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const redisClient = require('../redisClient');
 
 router.use(authMiddleware);
 
-router.get('/monthly', async (req, res) => {
+const cacheMiddleware = (req, res, next) => {
+  const key = `reports:${req.userId}:${req.path}`;
+  redisClient.get(key, (err, data) => {
+    if (err) throw err;
+    if (data) {
+      res.json(JSON.parse(data));
+    } else {
+      next();
+    }
+  });
+};
+
+router.get('/monthly', cacheMiddleware, async (req, res) => {
   try {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -21,16 +34,19 @@ router.get('/monthly', async (req, res) => {
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
 
-    res.json({
+    const result = {
       totalExpenses: expenses[0] ? expenses[0].total : 0,
       totalBudgets: budgets[0] ? budgets[0].total : 0
-    });
+    };
+
+    redisClient.setex(`reports:${req.userId}:${req.path}`, 3600, JSON.stringify(result));
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/yearly', async (req, res) => {
+router.get('/yearly', cacheMiddleware, async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
 
@@ -44,10 +60,13 @@ router.get('/yearly', async (req, res) => {
       { $group: { _id: null, total: { $sum: "$amount" } } }
     ]);
 
-    res.json({
+    const result = {
       totalExpenses: expenses[0] ? expenses[0].total : 0,
       totalBudgets: budgets[0] ? budgets[0].total : 0
-    });
+    };
+
+    redisClient.setex(`reports:${req.userId}:${req.path}`, 3600, JSON.stringify(result));
+    res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
