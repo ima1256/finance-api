@@ -57,7 +57,7 @@ if (fs.existsSync('key.pem') && fs.existsSync('cert.pem')) {
 }
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI_LOCAL;
 
 mongoose.connect(MONGO_URI, {
 }).then(() => {
@@ -70,3 +70,5 @@ mongoose.connect(MONGO_URI, {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+module.exports = app;

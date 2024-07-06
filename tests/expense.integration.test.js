@@ -9,12 +9,12 @@ describe('Expense API Integration Test', () => {
   let userId;
 
   beforeAll(async () => {
-    await mongoose.connect('mongodb://localhost:27017/finance_test', {
-    //   useNewUrlParser: true,
-    //   useUnifiedTopology: true
+    // Ensure the database is empty before tests
+    await mongoose.connect(process.env.MONGO_URI_TEST, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
     });
 
-    // Ensure the database is empty before tests
     await mongoose.connection.dropDatabase();
 
     // Create a user and get token
@@ -33,8 +33,13 @@ describe('Expense API Integration Test', () => {
         password: 'password123'
       });
 
+      console.log('Login Response:', loginResponse.body); // Add this line
+
     token = loginResponse.body.token;
-    userId = jwt.decode(token).userId; // Decode token to get userId
+    // userId = jwt.decode(token).userId; // Decode token to get userId
+
+    const decodedToken = jwt.decode(token);
+    console.log('Decoded Token:', decodedToken); // Add this line
   });
 
   afterAll(async () => {
@@ -53,7 +58,6 @@ describe('Expense API Integration Test', () => {
         date: new Date()
       });
 
-    //console.log('Created Expense:', res.body); // Log created expense
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty('_id');
     expect(res.body.description).toBe('Test Expense');
@@ -65,7 +69,6 @@ describe('Expense API Integration Test', () => {
       .get('/expenses')
       .set('Authorization', `Bearer ${token}`);
 
-    //console.log('Fetched Expenses:', res.body); // Log fetched expenses
     expect(res.statusCode).toEqual(200);
     expect(res.body).toBeInstanceOf(Array);
   });
@@ -78,8 +81,6 @@ describe('Expense API Integration Test', () => {
       date: new Date()
     }).save();
 
-    //console.log('New Expense ID:', newExpense._id.toString()); // Log new expense ID as string
-
     const res = await request(app)
       .put(`/expenses/${newExpense._id.toString()}`) // Convert ObjectId to string
       .set('Authorization', `Bearer ${token}`)
@@ -87,8 +88,6 @@ describe('Expense API Integration Test', () => {
         description: 'Updated Expense',
         amount: 150
       });
-
-    //console.log('Update Response:', res.body); // Log update response
 
     expect(res.statusCode).toEqual(200);
     expect(res.body.description).toBe('Updated Expense');
@@ -103,13 +102,9 @@ describe('Expense API Integration Test', () => {
       date: new Date()
     }).save();
 
-    //console.log('Expense to Delete ID:', newExpense._id.toString()); // Log expense ID to delete as string
-
     const res = await request(app)
       .delete(`/expenses/${newExpense._id.toString()}`) // Convert ObjectId to string
       .set('Authorization', `Bearer ${token}`);
-
-    //console.log('Delete Response:', res.body); // Log delete response
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('message', 'Expense deleted successfully');

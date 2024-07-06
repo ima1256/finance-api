@@ -4,7 +4,7 @@ const Expense = require('../models/expense');
 describe('Expense Model Test', () => {
   // Before all tests
   beforeAll(async () => {
-    await mongoose.connect('mongodb://localhost:27017/finance_test', {
+    await mongoose.connect(process.env.MONGO_URI_TEST, {
       // useNewUrlParser: true,
       // useUnifiedTopology: true
     });
