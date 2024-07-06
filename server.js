@@ -57,7 +57,7 @@ if (fs.existsSync('key.pem') && fs.existsSync('cert.pem')) {
 }
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI_LOCAL;
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URI, {
 }).then(() => {
