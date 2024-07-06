@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
     return res.status(401).json({ error: 'Access denied, no token provided' });
   }
   try {
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId; // Set the userId from the token
     next();
   } catch (error) {
