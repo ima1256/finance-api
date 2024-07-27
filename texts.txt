@@ -1,0 +1,1 @@
+// npx mocha --require test/setup.js test/reportEndpoints.test.js
