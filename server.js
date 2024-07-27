@@ -49,12 +49,12 @@ if (fs.existsSync('key.pem') && fs.existsSync('cert.pem')) {
   };
   server = https.createServer(sslOptions, app);
   // Start the server
-  server.listen(PORT, '127.0.0.1', () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
   });
   //console.log(`HTTPS server running on https://0.0.0.0:${PORT}`);
 } else {
-  server = app.listen(PORT, '127.0.0.1', () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     //console.log(`HTTP server running on http://0.0.0.0:${PORT}`);
   });
 }
